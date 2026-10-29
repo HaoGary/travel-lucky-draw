@@ -1,0 +1,50 @@
+/* ==========================================================
+   components/button.css — 按鈕
+   用法：<button class="btn btn--primary">
+   基底只定義共用結構；外觀一律用 modifier 指定。
+   --------------------------------------------------------
+   btn--outline   白底黑框（次要操作，例：重新選擇）
+   btn--primary   朱砂紅（主要操作，例：確認抽獎）
+   btn--soft      淡金底（深色背景上的次要操作，例：直接撕開）
+   btn--block     撐滿寬度
+   ========================================================== */
+.btn {
+  padding: var(--space-md) var(--space-sm);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+/* ---------- 外觀 ---------- */
+/* 顏色跟著視覺風格的「按鈕」設定（--theme-btn-*，見 js/theme.js） */
+.btn--outline {
+  color: var(--theme-btn-secondary-text, var(--color-text));
+  background: var(--theme-btn-secondary-bg, var(--color-surface));
+  border-color: var(--theme-btn-secondary-text, var(--color-text));
+}
+
+.btn--soft {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent-light);
+}
+
+.btn--primary {
+  --btn-bg: var(--theme-btn-primary-bg, var(--color-primary));
+  --btn-depth: color-mix(in srgb, var(--btn-bg) 62%, #000);
+  background: var(--btn-bg);
+  border-color: var(--btn-bg);
+  color: var(--theme-btn-primary-text, var(--color-text-inverse));
+  box-shadow: 0 3px 0 var(--btn-depth);
+}
+
+/* 立體按鈕按下時下沉 */
+.btn--primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--btn-depth);
+}
+
+/* ---------- 尺寸 ---------- */
+.btn--block {
+  width: 100%;
+}

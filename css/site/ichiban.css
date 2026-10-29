@@ -1,0 +1,1532 @@
+/* ==========================================================
+   pages/ichiban.css — 旅遊一番賞活動頁專屬樣式
+   命名空間：所有 class 以 ib- 開頭，不會影響其他頁面。
+   版面依 Figma「[大網] 一番賞遊戲活動頁」：主欄 960，美術以 --px 等比縮放。
+   目錄
+     0. 頁首背景       ib-backdrop
+     1. 頂部錢包列     ib-wallet
+     2. 主視覺         ib-hero
+     3. 雙按鈕、遊戲區標題 ib-quicklinks / ib-game-title
+     4. 角色選擇       ib-picker
+     5. 遊戲區格子     ib-board
+     6. 本輪狀態       ib-status
+     7. 抽獎操作列     ib-drawbar
+     8. 獎項介紹掛軸   ib-scroll / ib-prize-card / ib-prize-detail
+     9. 活動說明       ib-rules / ib-footnote
+    10. 彈窗內容       ib-records / ib-stock
+    11. 撕籤動畫       ib-tear / ib-ticket
+    12. 中獎結果       ib-win
+    13. 訪客登入       ib-wallet__guest / ib-guest
+   ========================================================== */
+
+/* ---------- 0. 頁首背景（Figma: topbg 2560 × 1500） ----------
+   設計稿在 960 主欄時背景寬 2560；主欄縮小時背景同比例縮小。 */
+.ib-backdrop {
+  --col: min(100vw, 960px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--col) * 1500 / 960);
+  overflow: hidden;
+  /* 背景圖可由視覺風格替換（--theme-topbg，見 js/theme.js） */
+  background: var(--theme-topbg, url("../../assets/img/hero/topbg.png")) center top / calc(var(--col) * 2560 / 960) auto no-repeat;
+  pointer-events: none;
+}
+
+/* ---------- 1. 頂部錢包列（Figma: 數位幣） ---------- */
+.ib-wallet {
+  text-align: center;
+  font-family: var(--font-topbar);
+  font-size: clamp(16px, 1.72vw, 44px);
+  font-weight: var(--font-weight-bold);
+  line-height: normal;
+}
+
+.ib-wallet {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 1.4em;
+}
+
+.ib-wallet__coins {
+  margin: 0;
+}
+
+.ib-wallet__amount {
+  display: inline-block;
+  font-family: var(--font-number);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.ib-wallet__amount--bump {
+  animation: ib-bump .5s;
+}
+
+@keyframes ib-bump {
+  40% { transform: scale(1.25); }
+}
+
+/* ---------- 2. 主視覺（Figma: 主視覺 960 × 991） ----------
+   文字元素依設計稿座標絕對定位，單位為 --px（主欄寬 / 960）。 */
+.ib-hero {
+  position: relative;
+  height: calc(var(--px) * 991);
+}
+
+.ib-hero__bg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ib-hero__heading {
+  margin: 0;
+}
+
+.ib-hero__logo,
+.ib-hero__subtitle,
+.ib-hero__title-a,
+.ib-hero__title-b,
+.ib-hero__ribbon {
+  position: absolute;
+  height: auto;
+}
+
+.ib-hero__logo     { left: calc(var(--px) * 156); top: calc(var(--px) * 100); width: calc(var(--px) * 717); }
+.ib-hero__subtitle { left: calc(var(--px) * 144); top: calc(var(--px) * 220); width: calc(var(--px) * 272); }
+.ib-hero__title-a  { left: calc(var(--px) * 128); top: calc(var(--px) * 276); width: calc(var(--px) * 296); }
+.ib-hero__title-b  { left: calc(var(--px) * 411); top: calc(var(--px) * 219); width: calc(var(--px) * 453); }
+.ib-hero__ribbon   { left: calc(var(--px) * 138); top: calc(var(--px) * 418); width: calc(var(--px) * 714); }
+
+/* 進場動畫由 js/motion.js（GSAP timeline）負責。
+   GSAP 設好初始狀態前先隱藏，避免閃一下（class 由 index.html 加上、motion.js 移除） */
+.motion-pending .ib-hero__bg,
+.motion-pending .ib-hero__heading,
+.motion-pending .ib-hero__ribbon,
+.motion-pending .ib-quicklinks {
+  visibility: hidden;
+}
+
+/* 視覺風格的點綴圖（可選） */
+.ib-hero__deco {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--px) * 560);
+  width: calc(var(--px) * 200);
+  height: auto;
+  pointer-events: none;
+}
+
+.ib-hero__deco--left  { left: calc(var(--px) * 16); }
+.ib-hero__deco--right { right: calc(var(--px) * 16); }
+
+/* ---------- 3. 雙按鈕（Figma: 雙按鈕 480 × 147 × 2） ---------- */
+.ib-quicklinks {
+  display: flex;
+}
+
+.ib-quicklinks__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  transition: transform .15s;
+}
+
+.ib-quicklinks__btn img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ib-quicklinks__btn:hover {
+  transform: translateY(-2px);
+}
+
+.ib-quicklinks__btn:active {
+  transform: translateY(2px);
+}
+
+/* ---------- 遊戲區標題（Figma: 遊戲區標題 960 × 424） ---------- */
+.ib-game-title {
+  margin: 0;
+}
+
+.ib-game-title img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- 4. 角色選擇（Figma: 選擇器）----------
+   縮圖 200 × 200、間距 20、左右 10；目前角色下方顯示紅色指示（selector）。 */
+.ib-picker {
+  display: flex;
+  gap: calc(var(--px) * 20);
+  padding: calc(var(--px) * 10) calc(var(--px) * 10) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.ib-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.ib-picker__item {
+  flex: 0 0 auto;
+  width: calc(var(--px) * 200);
+  padding-bottom: calc(var(--px) * 60);
+  position: relative;
+  scroll-snap-align: start;
+}
+
+.ib-picker__figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform .2s;
+}
+
+.ib-picker__item:hover .ib-picker__figure {
+  transform: translateY(-4px);
+}
+
+/* 目前角色：下方紅色箭頭（Figma: selector 60 × 60，箭頭 37 × 31 位於 11, 11） */
+.ib-picker__item[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--px) * 18);
+  width: calc(var(--px) * 37);
+  height: calc(var(--px) * 31);
+  transform: translateX(-50%);
+  background: url("../../assets/img/ui/selector.png") center / contain no-repeat;
+}
+
+/* ---------- 5. 遊戲區（Figma: 遊戲區 960 × 960，格子 7 × 10）----------
+   底圖為角色背景圖（含一番賞章、角色名、版權），格數由 JS 寫入 CSS 變數。 */
+.ib-board {
+  --board-cols: 7;
+  --board-rows: 10;
+  position: relative;
+  aspect-ratio: 1;
+  max-width: 100%;
+  background: #d9d9d9;
+}
+
+.ib-board__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ib-board__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--board-cols), 1fr);
+  grid-template-rows: repeat(var(--board-rows), 1fr);
+  border: 1px solid #000;
+}
+
+/* 格子（Figma: box）
+   status=Default：透明＋右下角翻頁 / 選中：紅 50% / 被抽完：黑 40% */
+.ib-board__cell {
+  position: relative;
+  background: url("../../assets/img/ui/box-curl.png") center / 100% 100% no-repeat;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  transition: background-color .2s;
+}
+
+.ib-board__cell:where(:nth-child(7n)) {
+  border-right: 0;
+}
+
+.ib-board__cell:where(:nth-last-child(-n + 7)) {
+  border-bottom: 0;
+}
+
+.ib-board__cell:where(:hover:not(:disabled)) {
+  background-color: rgba(255, 255, 255, .25);
+}
+
+.ib-board__cell:disabled {
+  background: rgba(0, 0, 0, .4);
+  cursor: default;
+}
+
+.ib-board__cell--selected {
+  background: rgba(204, 30, 5, .5);
+}
+
+/* 管理頁預覽專用：在格子上顯示賞別（正式頁面不會加上這個 class） */
+.ib-board__cell--reveal::after {
+  content: attr(data-grade);
+  position: absolute;
+  inset: 18%;
+  display: grid;
+  place-items: center;
+  font: 700 clamp(10px, calc(var(--px) * 30), 22px) / 1 var(--font-family-base, sans-serif);
+  color: #fff;
+  background: #6b7280;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+}
+.ib-board__cell--reveal:where([data-grade="A"])::after { background: #c62828; }
+.ib-board__cell--reveal:where([data-grade="B"])::after { background: #ef6c00; }
+.ib-board__cell--reveal:where([data-grade="C"])::after { background: #2e7d32; }
+.ib-board__cell--reveal:where([data-grade="D"])::after { background: #1565c0; }
+.ib-board__cell--reveal:where([data-grade="E"])::after { background: #6a1b9a; }
+
+/* ---------- 6. 本輪狀態 ib-status ----------
+   與獎項卡片同一套材質：米白紙底、青綠雙線框、朱紅印章。
+   版型依「本區塊寬度」切換（container query），手機到桌機都不換行破版：
+     ≥ 600px  一列：印章｜剩餘籤數＋進度條｜規則說明（直書兩行）
+     < 600px  兩列：印章＋剩餘籤數／進度條在上，規則說明橫排在下
+     < 340px  印章縮小、數字縮小 */
+.ib-status-wrap {
+  margin-top: calc(var(--px) * 20);
+  padding-left: var(--gutter-left);
+  padding-right: var(--gutter-right);
+  container-type: inline-size;
+}
+
+/* 桌機：主欄已有足夠寬度，不另加左右邊距，與遊戲區對齊 */
+@container (min-width: 900px) {
+  .ib-status-wrap { padding-left: 0; padding-right: 0; }
+}
+
+.ib-status {
+  --status-frame: #008383;
+  --status-frame-dark: #005358;
+  --status-seal: #d02109;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "round stock note";
+  align-items: center;
+  gap: 12px 20px;
+  padding: 14px 22px;
+  color: #230b00;
+  background: #fff8f0;
+  border: 2px solid var(--status-frame);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 4px #fff8f0,
+    inset 0 0 0 5px rgba(0, 131, 131, .45),
+    0 4px 0 var(--status-frame-dark);
+}
+
+/* 輪數：朱紅圓印 */
+.ib-status__round {
+  grid-area: round;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  width: 76px;
+  height: 76px;
+  padding-top: 16px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-black);
+  color: #fff2e9;
+  background: var(--status-seal);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #fff8f0, 0 0 0 5px var(--status-seal);
+  transform: rotate(-6deg);
+}
+
+.ib-status__round-unit {
+  font-size: 14px;
+}
+
+.ib-status__round-num {
+  font-size: 34px;
+  font-style: normal;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 剩餘籤數＋進度條 */
+.ib-status__stock {
+  grid-area: stock;
+  min-width: 0;
+}
+
+.ib-status__stock-text {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.ib-status__left {
+  margin: 0 2px;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--status-seal);
+}
+
+.ib-status__total {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: #a15631;
+}
+
+.ib-status__bar {
+  height: 10px;
+  background: #f1dfc6;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 2px rgba(94, 53, 4, .2);
+}
+
+.ib-status__bar-fill {
+  width: 100%;                    /* 比例以 transform: scaleX 表示（motion.js 動畫） */
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--status-frame-dark), var(--status-frame));
+  border-radius: inherit;
+}
+
+/* 規則說明：桌機直排兩行，左側以細線分隔 */
+.ib-status__note {
+  grid-area: note;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: #a15631;
+  border-left: 1px dashed rgba(161, 86, 49, .5);
+}
+
+.ib-status__note-line::before {
+  content: "• ";
+  color: var(--status-frame);
+}
+
+/* 平板／手機：說明移到下方一列，橫排置中 */
+@container (max-width: 599px) {
+  .ib-status {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "round stock"
+      "note  note";
+    gap: 10px 16px;
+    padding: 14px 16px 12px;
+  }
+
+  .ib-status__note {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px 14px;
+    padding: 10px 0 0;
+    font-size: var(--font-size-xs);
+    border-left: 0;
+    border-top: 1px dashed rgba(161, 86, 49, .5);
+  }
+}
+
+/* 小手機：縮小印章與數字 */
+@container (max-width: 339px) {
+  .ib-status {
+    gap: 8px 12px;
+    padding: 12px 12px 10px;
+  }
+
+  .ib-status__round {
+    width: 58px;
+    height: 58px;
+    padding-top: 12px;
+  }
+
+  .ib-status__round-unit { font-size: 12px; }
+  .ib-status__round-num { font-size: 24px; }
+  .ib-status__stock-text { font-size: 15px; }
+  .ib-status__left { font-size: 24px; }
+  .ib-status__total { font-size: 13px; }
+}
+
+/* ---------- 7. 抽獎操作列（選格後出現，黏在底部） ---------- */
+/* 顏色跟著「面板」與「按鈕」設定，與活動說明、彈窗一致 */
+.ib-drawbar {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-dock);
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding: var(--space-lg) max(var(--space-lg), env(safe-area-inset-right, 0px)) calc(var(--space-lg) + env(safe-area-inset-bottom, 0px)) max(var(--space-lg), env(safe-area-inset-left, 0px));
+  color: var(--theme-panel-text, var(--color-text));
+  background: var(--theme-panel-bg, var(--color-surface));
+  border: 2px solid var(--theme-head-bg, var(--color-text));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-dock);
+}
+
+.ib-drawbar__text {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---------- 8. 獎項介紹掛軸（Figma: index0327_07 960 × 1132）----------
+   用 border-image 九宮格切圖：上段（含標題與放射光）0–700、下段 1025–1132 固定，
+   中段純色紙張可隨獎項數量延伸。紙張內緣左 90、右 86（設計稿像素）。 */
+.ib-scroll {
+  margin-top: calc(var(--px) * 20);
+  min-height: calc(var(--px) * 1132);
+  padding: calc(var(--px) * 340) calc(var(--px) * 116) calc(var(--px) * 175) calc(var(--px) * 120);
+  border: 0 solid transparent;
+  border-image-source: var(--theme-scroll, url("../../assets/img/hero/prize-scroll.png"));  /* 可由視覺風格替換 */
+  border-image-slice: 700 0 107 0 fill;
+  border-image-width: calc(var(--px) * 700) 0 calc(var(--px) * 107) 0;
+  border-image-repeat: stretch;
+}
+
+/* 卡片清單：設為容器，卡片依清單寬度切換橫式／直式 */
+.ib-scroll__content {
+  display: grid;
+  gap: calc(var(--px) * 24);
+  container-type: inline-size;
+}
+
+/* ---------- 8a. 獎項卡片 ib-prize-card ----------
+   版型：左圖、右文字置中、按鈕、最右側箭頭（參考橫式資訊卡排版）。
+   風格：沿用 Figma 主視覺的配色與材質——
+     米白宣紙底（遊戲區標題）、青綠雙線框（掛軸）、朱紅印章（100% 中獎率）、
+     木牌按鈕（抽獎紀錄／中獎看板）。
+   每張卡的圖片底色由 JS 寫入 --card-tint（config.js 的 PRIZES.tint）。 */
+.ib-prize-card {
+  --card-tint: #f3c48e;
+  --card-paper: #fff8f0;          /* Figma 遊戲區標題的米白 */
+  --card-frame: #008383;          /* Figma 掛軸青綠 */
+  --card-frame-dark: #005358;
+  --card-ink: #230b00;            /* Figma 木牌深褐字 */
+  --card-wood: #f9cf8f;           /* Figma 木牌底 */
+  --card-wood-edge: #5e3504;
+  --card-seal: #d02109;           /* Figma 印章朱紅 */
+  --card-sub: #a15631;
+  position: relative;
+  display: grid;
+  grid-template-columns: 46% 1fr 28px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 12px 14px 14px;
+  color: var(--card-ink);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(227, 162, 164, .22), transparent 40%),
+    var(--card-paper);
+  border: 2px solid var(--card-frame);
+  border-radius: 6px;
+  /* 內側細線，做出掛軸般的雙線框 */
+  box-shadow:
+    inset 0 0 0 4px var(--card-paper),
+    inset 0 0 0 5px rgba(0, 131, 131, .45),
+    0 4px 0 var(--card-frame-dark),
+    0 8px 16px rgba(94, 53, 4, .18);
+  transition: transform .25s, box-shadow .25s;
+}
+
+/* 角飾：左上、右下青綠雙線 L 形 */
+.ib-prize-card::before,
+.ib-prize-card::after {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 20px;
+  border: 4px double var(--card-frame-dark);
+  pointer-events: none;
+}
+
+.ib-prize-card::before {
+  top: 8px;
+  left: 8px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.ib-prize-card::after {
+  right: 8px;
+  bottom: 8px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.ib-prize-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 0 0 4px var(--card-paper),
+    inset 0 0 0 5px rgba(0, 131, 131, .45),
+    0 7px 0 var(--card-frame-dark),
+    0 12px 20px rgba(94, 53, 4, .22);
+}
+
+.ib-prize-card:focus-within {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* 圖片區：與「獎項介紹」掛軸相同的放射光，白框圓角 */
+.ib-prize-card__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 62%, rgba(255, 255, 255, .55) 0 8deg, transparent 8deg 16deg),
+    radial-gradient(circle at 50% 62%, #fffbe6 10%, color-mix(in srgb, var(--card-tint) 55%, #f9c49a) 80%);
+  border: 3px solid #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(161, 86, 49, .35);
+}
+
+.ib-prize-card__icon {
+  width: 52%;
+  height: auto;
+  filter: drop-shadow(0 4px 3px rgba(94, 53, 4, .25));
+  transition: transform .35s;
+}
+
+.ib-prize-card:hover .ib-prize-card__icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* 商品圖：實拍照填滿圖片區；去背或含文字的圖完整顯示，露出放射光底 */
+.ib-prize-card__icon--cover,
+.ib-prize-card__icon--contain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: none;
+}
+
+.ib-prize-card__icon--cover {
+  object-fit: cover;
+}
+
+.ib-prize-card__icon--contain {
+  padding: 6%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(94, 53, 4, .25));
+}
+
+.ib-prize-card:hover .ib-prize-card__icon--cover,
+.ib-prize-card:hover .ib-prize-card__icon--contain {
+  transform: scale(1.06);
+}
+
+/* 等級印章：朱紅方章，略微傾斜；疊在商品圖之上 */
+.ib-prize-card__badge {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  left: 6px;
+  padding: 2px 8px;
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-black);
+  letter-spacing: .05em;
+  color: #fff2e9;
+  background: var(--card-seal);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 242, 233, .6);
+  transform: rotate(-4deg);
+}
+
+/* 文字區：置中 */
+.ib-prize-card__body {
+  min-width: 0;
+  text-align: center;
+}
+
+.ib-prize-card__label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .12em;
+  color: var(--card-frame);
+}
+
+.ib-prize-card__label::before,
+.ib-prize-card__label::after {
+  content: "•";
+  margin: 0 .4em;
+  color: var(--card-sub);
+}
+
+.ib-prize-card__title {
+  margin: 2px 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(18px, 6cqi, 28px);
+  font-weight: var(--font-weight-black);
+  line-height: 1.3;
+  letter-spacing: .04em;
+  text-wrap: balance;
+}
+
+.ib-prize-card__stock {
+  margin: 0 0 12px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--card-sub);
+}
+
+/* 木牌按鈕（同 Figma 抽獎紀錄／中獎看板）；::after 延伸到整張卡 */
+.ib-prize-card__cta {
+  padding: 5px 20px;
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-black);
+  letter-spacing: .08em;
+  color: var(--card-wood-edge);
+  background:
+    repeating-linear-gradient(176deg, rgba(224, 177, 105, .35) 0 2px, transparent 2px 7px),
+    linear-gradient(var(--card-wood), #eebc78);
+  border: 1.5px solid var(--card-wood-edge);
+  border-radius: 4px;
+  box-shadow: 0 3px 0 var(--card-wood-edge);
+}
+
+.ib-prize-card__cta::before {
+  content: "• ";
+}
+
+.ib-prize-card__cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.ib-prize-card__cta-dot::before {
+  content: " •";
+}
+
+.ib-prize-card__cta:focus-visible {
+  outline: none; /* 由整張卡的 :focus-within 顯示焦點 */
+}
+
+/* 按下時只改陰影：按鈕本身不能加 transform／filter／position，
+   否則會變成 ::after 的定位基準，整張卡就無法點擊 */
+.ib-prize-card:active .ib-prize-card__cta {
+  box-shadow: 0 1px 0 var(--card-wood-edge);
+}
+
+/* 右側雙箭頭（青綠） */
+.ib-prize-card__arrow {
+  position: relative;
+  width: 22px;
+  height: 18px;
+  transition: transform .25s;
+}
+
+.ib-prize-card__arrow::before,
+.ib-prize-card__arrow::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  width: 10px;
+  height: 10px;
+  border-top: 2.5px solid var(--card-frame);
+  border-right: 2.5px solid var(--card-frame);
+  transform: rotate(45deg);
+}
+
+.ib-prize-card__arrow::before { left: 0; opacity: .45; }
+.ib-prize-card__arrow::after { left: 7px; }
+
+.ib-prize-card:hover .ib-prize-card__arrow {
+  transform: translateX(4px);
+}
+
+/* 已抽完 */
+.ib-prize-card--soldout .ib-prize-card__media {
+  filter: grayscale(1) opacity(.7);
+}
+
+.ib-prize-card--soldout .ib-prize-card__stock {
+  color: var(--card-seal);
+}
+
+/* LAST ONE：朱紅框、粉色宣紙，印章改木牌色 */
+.ib-prize-card--last {
+  --card-frame: var(--card-seal);
+  --card-frame-dark: #8c1606;
+  --card-paper: #fff0ea;
+}
+
+.ib-prize-card--last .ib-prize-card__badge {
+  color: var(--card-wood-edge);
+  background: var(--card-wood);
+  box-shadow: inset 0 0 0 1.5px var(--card-wood-edge);
+}
+
+/* 窄版（清單寬度 < 360px，手機）：維持橫式，縮小間距、隱藏箭頭 */
+@container (max-width: 359px) {
+  .ib-prize-card {
+    grid-template-columns: 44% 1fr;
+    gap: 10px;
+    padding: 10px 10px 10px 10px;
+  }
+
+  .ib-prize-card::before,
+  .ib-prize-card::after {
+    width: 22px;
+    height: 14px;
+    border-width: 3px;
+  }
+
+  .ib-prize-card__media {
+    aspect-ratio: 1;
+  }
+
+  .ib-prize-card__badge {
+    font-size: 12px;
+    padding: 0 5px;
+  }
+
+  .ib-prize-card__label,
+  .ib-prize-card__stock {
+    font-size: 12px;
+  }
+
+  .ib-prize-card__title {
+    font-size: 16px;
+  }
+
+  .ib-prize-card__stock {
+    margin-bottom: 6px;
+  }
+
+  .ib-prize-card__cta {
+    min-height: 36px;               /* 手機上足夠的點擊區域 */
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .ib-prize-card__arrow {
+    display: none;
+  }
+}
+
+/* ---------- 8b. 獎品詳情彈窗 ---------- */
+.ib-prize-detail {
+  text-align: center;
+}
+
+.ib-prize-detail__icon {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-sm);
+}
+
+/* 詳情彈窗的商品圖：較大、圓角 */
+.ib-prize-detail__icon--cover,
+.ib-prize-detail__icon--contain {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  aspect-ratio: 4 / 3;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.ib-prize-detail__icon--cover { object-fit: cover; }
+.ib-prize-detail__icon--contain { object-fit: contain; }
+
+.ib-prize-detail__spec {
+  margin: 0;
+  padding: var(--space-lg);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+  background: color-mix(in srgb, var(--modal-text, #000) 6%, var(--modal-bg, var(--color-bg)));
+  border-radius: var(--radius-md);
+}
+
+.ib-prize-detail__stock {
+  margin: var(--space-md) 0 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--theme-accent, var(--color-primary));
+}
+
+/* ---------- 9. 活動說明 ---------- */
+/* 顏色跟著「面板」設定（--theme-panel-* / --theme-head-* / --theme-accent，見 js/theme.js），與操作列、彈窗一致 */
+.ib-rules {
+  background: var(--theme-panel-bg, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--theme-head-bg, var(--color-text)) 30%, transparent);
+}
+
+.ib-rules__title {
+  margin: 0;
+  padding: var(--space-md);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: .2em;
+  color: var(--theme-head-text, var(--color-bg));
+  background: var(--theme-head-bg, var(--color-text));
+}
+
+.ib-rules__body {
+  padding: var(--space-xl) var(--space-2xl);
+  font-size: 13.5px;
+  color: var(--theme-panel-text, var(--color-text));
+}
+
+.ib-rules__heading {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-base);
+  color: var(--theme-accent, var(--color-primary));
+}
+
+.ib-rules__list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ib-rules__list > li {
+  margin-bottom: var(--space-sm);
+}
+
+.ib-rules__sublist {
+  margin: var(--space-xs) 0 0;
+  padding-left: 18px;
+}
+
+.ib-rules__sublist > li {
+  margin-bottom: var(--space-2xs);
+}
+
+.ib-footnote {
+  margin-top: 20px;
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ---------- 10. 彈窗內容：抽獎紀錄、中獎看板 ---------- */
+.ib-records__time-col {
+  width: 38%;
+}
+
+.ib-records__last-one {
+  color: var(--theme-accent, var(--color-primary));
+}
+
+.ib-records__empty {
+  padding: var(--space-3xl) var(--space-sm);
+  text-align: center;
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.ib-records__note {
+  margin: var(--space-lg) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.ib-stock {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--modal-line, var(--color-border));
+}
+
+.ib-stock__icon {
+  width: 52px;
+  height: 52px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.ib-stock__icon--cover { object-fit: cover; }
+.ib-stock__icon--contain { object-fit: contain; }
+
+.ib-stock__name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.ib-stock__bar {
+  margin-top: var(--space-xs);
+}
+
+.ib-stock__count {
+  text-align: right;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+/* LAST ONE 那一列的說明文字靠左 */
+.ib-stock__count--message {
+  margin-top: var(--space-2xs);
+  text-align: left;
+}
+
+/* ---------- 11. 撕籤動畫 ---------- */
+.ib-tear {
+  text-align: center;
+  color: var(--color-text-inverse);
+}
+
+.ib-tear__hint {
+  margin: 0 0 var(--space-xl);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .6);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .1em;
+}
+
+/* 連線版：等待後端開獎時，提示文字閃爍 */
+.ib-tear__hint.is-wait {
+  animation: ib-tear-wait 1s ease-in-out infinite;
+}
+
+@keyframes ib-tear-wait {
+  50% { opacity: .4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ib-tear__hint.is-wait { animation: none; }
+}
+
+/* 開始自動撕開後就收起「直接撕開」按鈕 */
+.ib-tear:has(.is-tearing) .ib-tear__actions {
+  visibility: hidden;
+}
+
+.ib-tear__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+}
+
+/* 籤：籤頭（可撕）＋籤紙（折起，撕開後翻開）
+   進度變數 --p（0–1）與每條細片的 --lift（0–1）由 tear.js 寫入 */
+.ib-ticket {
+  --paper: #fbf3e4;
+  --paper-shade: #efe2c8;
+  --strip-red: #c8281c;
+  position: relative;
+  width: min(280px, 76vw);
+  margin: 0 auto;
+  user-select: none;
+  touch-action: none;
+  perspective: 900px;
+}
+
+/* ---------- 籤頭 ---------- */
+.ib-ticket__strip {
+  position: relative;
+  z-index: 3;
+  cursor: grab;
+  /* 陰影加在整條籤頭上（不加在細片上），捲起的紙才是連續的一片 */
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .28));
+}
+
+.ib-ticket.is-grabbing .ib-ticket__strip {
+  cursor: grabbing;
+}
+
+/* 每條細片：撕線越過後翹起並捲曲；外層 drop-shadow 做出紙張斷面的白色纖維 */
+.ib-ticket__shred {
+  --lift: 0;
+  position: absolute;
+  top: 0;
+  transform-origin: 50% 85%;   /* 位置與角度由 tear.js 依捲曲弧線計算 */
+  filter: drop-shadow(0 1.5px 0 #fff7ea);   /* 紙張斷面的白色纖維 */
+  will-change: transform;
+}
+
+.ib-ticket__shred-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ib-ticket__shred-face {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+
+/* 翹起的紙片：背光面稍亮，看起來像紙在捲 */
+.ib-ticket__shred.is-torn .ib-ticket__shred-face {
+  filter: brightness(calc(1 + var(--lift) * .18));
+}
+
+/* 籤頭的正面（每條細片裡都放一份完整的，再用位移切出自己那段） */
+.ib-ticket__face {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px 10px;
+  color: var(--color-text-cream);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .12), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .04) 0 1px, transparent 1px 3px),
+    var(--strip-red);
+  border: 3px solid var(--color-accent);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+
+.ib-ticket__label {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-black);
+  letter-spacing: .08em;
+}
+
+/* 右側抓握提示：三道斜紋 */
+.ib-ticket__grip {
+  width: 20px;
+  height: 16px;
+  background: repeating-linear-gradient(115deg, rgba(255, 246, 224, .85) 0 2px, transparent 2px 6px);
+  border-radius: 2px;
+}
+
+/* 撕線上方的虛線（打孔） */
+.ib-ticket__perf {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 15px;
+  border-top: 2px dashed rgba(255, 246, 224, .7);
+}
+
+/* 撕完：整條籤頭像紙片一樣甩出去 */
+.ib-ticket.is-ripped .ib-ticket__strip {
+  animation: ib-strip-fly .75s cubic-bezier(.3, .1, .6, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes ib-strip-fly {
+  to {
+    transform: translate(70px, -120px) rotate(-24deg);
+    opacity: 0;
+  }
+}
+
+/* ---------- 籤紙上緣撕痕 ---------- */
+.ib-ticket__edge {
+  position: absolute;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  overflow: visible;
+}
+
+.ib-ticket__edge-paper {
+  fill: var(--paper);
+}
+
+.ib-ticket__edge-fiber {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  opacity: .9;
+}
+
+/* ---------- 籤紙 ---------- */
+.ib-ticket__body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 230px;
+  margin-top: -18px;   /* 撕線以下的部分與籤紙相連 */
+  padding-top: 18px;
+  color: var(--color-text);
+  background:
+    repeating-linear-gradient(0deg, rgba(160, 120, 60, .05) 0 1px, transparent 1px 4px),
+    var(--paper);
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+  transform-style: preserve-3d;
+}
+
+.ib-ticket__result {
+  font-family: var(--font-display);
+  font-size: 84px;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0;
+  transform: scale(.6) rotate(-6deg);
+  transition: opacity .3s .35s, transform .5s .35s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+.ib-ticket__result-unit {
+  display: block;
+  font-size: 20px;
+  color: var(--color-text);
+}
+
+/* 折起的籤紙：撕掉籤頭後由上往下翻開 */
+.ib-ticket__flap {
+  position: absolute;
+  inset: 18px 0 0;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .08), transparent 18%),
+    repeating-linear-gradient(135deg, var(--color-secondary) 0 14px, var(--color-secondary-dark) 14px 28px);
+  border-radius: 0 0 10px 10px;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
+  transition: transform .7s cubic-bezier(.5, 0, .3, 1), opacity .2s .5s;
+}
+
+.ib-ticket__flap-mark {
+  padding: 6px 14px;
+  font-family: var(--font-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-black);
+  letter-spacing: .2em;
+  color: var(--color-accent-light);
+  border: 2px solid rgba(243, 212, 138, .6);
+  border-radius: 4px;
+}
+
+.ib-ticket.is-open .ib-ticket__flap {
+  transform: rotateX(178deg);
+  opacity: 0;
+}
+
+.ib-ticket.is-open .ib-ticket__result {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 紙屑 ---------- */
+.ib-ticket__bits {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.ib-ticket__bit {
+  position: absolute;
+  width: 6px;
+  height: 4px;
+  background: var(--paper);
+  clip-path: polygon(0 20%, 60% 0, 100% 45%, 80% 100%, 15% 85%);
+  animation: ib-bit 0.9s cubic-bezier(.2, .6, .5, 1) forwards;
+}
+
+.ib-ticket__bit.is-red {
+  background: var(--strip-red);
+}
+
+@keyframes ib-bit {
+  0% { transform: translate(0, 0) rotate(0) scale(var(--s)); opacity: 1; }
+  60% { opacity: 1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + 90px)) rotate(var(--r)) scale(var(--s)); opacity: 0; }
+}
+
+/* ---------- 12. 中獎結果（放在 .modal__panel 內） ---------- */
+.ib-win {
+  padding: 20px var(--space-2xl) 18px;
+  text-align: center;
+  background:
+    repeating-conic-gradient(from 0deg at 50% 38%, rgba(243, 212, 138, .35) 0 8deg, transparent 8deg 16deg),
+    var(--modal-bg, var(--color-surface));
+}
+
+.ib-win__badge {
+  display: inline-block;
+  padding: var(--space-2xs) 18px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-black);
+  letter-spacing: .2em;
+  color: var(--theme-head-text, var(--color-accent-light));
+  background: var(--theme-head-bg, var(--color-text));
+  border-radius: var(--radius-xs);
+}
+
+.ib-win__grade {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  color: var(--color-primary);
+}
+
+.ib-win__icon {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: var(--space-sm) auto 2px;
+}
+
+/* 中獎彈窗的商品圖：白框圓角，像一張拍立得 */
+.ib-win__icon--cover,
+.ib-win__icon--contain {
+  width: 150px;
+  height: 150px;
+  background: #fff;
+  border: 4px solid #fff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(94, 53, 4, .2);
+}
+
+.ib-win__icon--cover { object-fit: cover; }
+.ib-win__icon--contain { object-fit: contain; }
+
+.ib-win__name {
+  margin: var(--space-2xs) 0 0;
+  font-size: 19px;
+  color: var(--color-secondary-dark);
+}
+
+.ib-win__note {
+  font-size: var(--font-size-sm);
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.ib-win__extra {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--theme-accent, var(--color-primary));
+  border: 2px dashed var(--theme-accent, var(--color-primary));
+  border-radius: var(--radius-md);
+}
+
+.ib-win__confirm {
+  margin-top: var(--space-xl);
+}
+
+/* ---------- 管理頁預覽：標示正在查看的素材 ---------- */
+.is-theme-focus {
+  outline: 4px solid #36a3ff;
+  outline-offset: 4px;
+  animation: ib-theme-focus 1.8s ease-out;
+}
+
+@keyframes ib-theme-focus {
+  0%, 60% { outline-color: #36a3ff; }
+  100% { outline-color: transparent; }
+}
+
+/* ---------- 連線模式：第一次載入後端資料時 ---------- */
+.is-loading .ib-wallet__amount {
+  visibility: hidden;
+}
+
+.is-loading body::after {
+  content: "活動資料載入中…";
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 1000;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--color-overlay);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .1em;
+  animation: ib-tear-wait 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-loading body::after { animation: none; }
+}
+
+/* 第一次載入時若已顯示訪客登入彈窗，不再疊上「載入中」 */
+.is-loading body:has(#modal:not([hidden]))::after {
+  display: none;
+}
+
+/* ---------- 13. 訪客登入 ----------
+   頂部列右側：訪客名稱＋登出；彈窗：名稱、手機號碼 */
+.ib-wallet__guest {
+  position: absolute;
+  right: var(--gutter-right);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 30%;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.ib-wallet__guest[hidden] {
+  display: none;
+}
+
+.ib-wallet__name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ib-wallet__out {
+  position: relative;
+  flex: none;
+  min-height: 26px;
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 70%, transparent);
+  border-radius: 999px;
+}
+
+/* 點擊範圍至少 44px（不撐高頂部列） */
+.ib-wallet__out::after {
+  content: "";
+  position: absolute;
+  inset: -9px -4px;
+}
+
+.ib-wallet__out:hover {
+  background: rgba(255, 255, 255, .15);
+}
+
+.ib-wallet__out:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* 手機：數位幣靠左、訪客靠右，避免重疊 */
+@media (max-width: 599px) {
+  .ib-wallet {
+    justify-content: space-between;
+  }
+
+  .ib-wallet__guest {
+    position: static;
+    transform: none;
+    max-width: 45%;
+  }
+}
+
+.ib-guest__form {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.ib-guest__desc {
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.ib-guest__alert {
+  margin: 0;
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-md);
+  color: #b3261e;
+  background: #fdecea;
+  border-radius: var(--radius-sm);
+}
+
+.ib-guest__alert[hidden] {
+  display: none;
+}
+
+.ib-guest__field {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.ib-guest__label {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.ib-guest__req {
+  margin-left: 2px;
+  color: #F7595A;
+}
+
+.ib-guest__input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-lg);
+  font: inherit;
+  font-size: 16px;                 /* 16px 以上，iOS 點選時不會自動放大 */
+  color: var(--color-text);
+  background: #fff;
+  border: 1.5px solid var(--modal-line, var(--color-border));
+  border-radius: var(--radius-md);
+}
+
+.ib-guest__input:focus {
+  outline: none;
+  border-color: var(--modal-title, var(--color-primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--modal-title, var(--color-primary)) 22%, transparent);
+}
+
+.ib-guest__help {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.ib-guest__field.is-error .ib-guest__input {
+  border-color: #d93025;
+}
+
+.ib-guest__field.is-error .ib-guest__help {
+  color: #d93025;
+}
+
+.ib-guest__submit {
+  min-height: 48px;
+  margin-top: var(--space-2xs);
+  font-size: var(--font-size-lg);
+}
+
+.ib-guest__submit:disabled {
+  opacity: .7;
+}
+
+.ib-guest__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.ib-guest__actions .btn {
+  min-height: 44px;
+}

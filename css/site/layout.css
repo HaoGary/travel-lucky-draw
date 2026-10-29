@@ -1,0 +1,49 @@
+/* ==========================================================
+   layout.css — 頁面骨架
+   只管位置、寬度與區塊間距，不管顏色以外的元件外觀。
+   ========================================================== */
+
+/* 手機瀏海區的色帶，與頂部列同色，避免捲動內容露出 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: var(--z-safe-area);
+  background: var(--color-topbar);
+}
+
+/* 固定在頂部的全寬列，疊在主視覺上方（Figma：數位幣列覆蓋在 topbg 上） */
+.l-header {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+  padding-block: clamp(6px, .51vw, 13px);
+  padding-left: var(--gutter-left);
+  padding-right: var(--gutter-right);
+  background: var(--color-topbar);
+  color: var(--color-text-inverse);
+}
+
+/* 主欄：依 Figma 960 寬置中，美術圖貼齊左右；
+   設為容器，讓內部可用 cqi（--px）依主欄寬等比縮放 */
+.l-container {
+  position: relative;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  padding-block: 0 var(--space-page-end);
+  container-type: inline-size;
+}
+
+/* 主欄內的文字區塊：加回左右安全邊距 */
+.l-inset {
+  padding-left: var(--gutter-left);
+  padding-right: var(--gutter-right);
+}
+
+/* 大區塊之間的固定間距 */
+.l-section {
+  margin-top: var(--space-section);
+}

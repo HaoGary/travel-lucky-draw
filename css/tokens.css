@@ -1,0 +1,110 @@
+/* ==========================================================
+   tokens.css — 設計變數（唯一的數值來源）
+   新增或修改顏色、字級、間距時只改這裡。
+   元件專用的細部數值（例如某個 rgba 透明度）放在該元件內的區域變數。
+   ========================================================== */
+:root {
+  color-scheme: light;
+
+  /* ---------- 色彩：品牌 ---------- */
+  --color-primary: #c23a2b;        /* 朱砂紅：主要按鈕、強調文字、印章 */
+  --color-primary-dark: #7d2219;   /* 主要按鈕的立體陰影 */
+  --color-secondary: #2f7f86;      /* 青綠：掛軸、輔助文字 */
+  --color-secondary-dark: #1f5a60; /* 頂部列、標題 */
+  --color-accent: #c8902c;         /* 金：邊框、金色按鈕 */
+  --color-accent-light: #f3d48a;
+  --color-accent-dark: #8f6216;    /* 金色按鈕的立體陰影 */
+  --color-topbar: #298d9c;         /* Figma：數位幣頂部列 */
+
+  /* ---------- 色彩：文字 ---------- */
+  --color-text: #2b2420;
+  --color-text-muted: #6b5d50;
+  --color-text-inverse: #ffffff;
+  --color-text-cream: #fff6e0;     /* 紅底上的米白字 */
+
+  /* ---------- 色彩：背景與線條 ---------- */
+  --color-bg: #f2e6d0;             /* 頁面底色（Figma：[大網] 一番賞遊戲活動頁） */
+  --color-bg-alt: #efe0c2;         /* 次要區塊底色 */
+  --color-surface: #fffaf0;        /* 卡片、彈窗 */
+  --color-border: #d9c39c;
+  --color-overlay: rgba(32, 26, 22, .62);
+
+  /* 文字色的透明版本（陰影、細線） */
+  --color-ink-12: rgba(43, 36, 32, .12);
+  --color-ink-15: rgba(43, 36, 32, .15);
+  --color-ink-18: rgba(43, 36, 32, .18);
+  --color-ink-25: rgba(43, 36, 32, .25);
+  --color-ink-55: rgba(43, 36, 32, .55);
+
+  /* ---------- 字體 ---------- */
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-topbar: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+  --font-number: Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-base: 15px;
+  --font-size-lg: 17px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 22px;
+  --font-size-3xl: 30px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  --line-height-tight: 1.1;
+  --line-height-base: 1.6;
+
+  /* ---------- 間距 ---------- */
+  --space-2xs: 4px;
+  --space-xs: 6px;
+  --space-sm: 8px;
+  --space-md: 10px;
+  --space-lg: 12px;
+  --space-xl: 14px;
+  --space-2xl: 16px;
+  --space-3xl: 24px;
+  --space-section: 34px;           /* 大區塊之間 */
+  --space-page-end: 48px;          /* 頁尾留白 */
+
+  /* 左右安全邊距：至少 16px，並避開手機瀏海／側邊系統列 */
+  --gutter-left: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-right: max(16px, env(safe-area-inset-right, 0px));
+
+  /* ---------- 圓角 ---------- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-pill: 20px;
+  --radius-round: 50%;
+
+  /* ---------- 陰影 ---------- */
+  --shadow-figure: drop-shadow(0 6px 6px var(--color-ink-18));
+  --shadow-dock: 0 -6px 16px var(--color-ink-12);
+
+  /* ---------- 層級 ---------- */
+  --z-board-overlay: 2;
+  --z-dock: 4;
+  --z-header: 5;
+  --z-safe-area: 10;
+  --z-modal: 20;
+  --z-toast: 30;
+
+  /* ---------- 版寬與斷點 ----------
+     目前版面為單欄流動式，所有尺寸以 clamp()/min() 隨寬度縮放，未使用 @media 斷點。
+     若日後需要斷點，請沿用以下數值（CSS 變數無法用在 @media 條件內，僅供對照）：
+       --bp-sm: 480px / --bp-md: 768px / --bp-lg: 960px（= 版寬上限） */
+  --layout-max-width: 960px;       /* Figma main_section 寬度 */
+
+  /* ---------- 設計稿比例單位 ----------
+     Figma 主欄寬 960，美術圖一律依主欄寬度等比縮放。
+     在 .l-container 內使用：calc(var(--px) * 設計稿像素)。 */
+  --px: calc(100cqi / 960);
+  --design-width: 960;
+}

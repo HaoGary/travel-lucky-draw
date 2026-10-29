@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>旅遊一番賞</title>
+  <meta name="description" content="ETmall × 霹靂Q俠 旅遊一番賞線上抽獎活動：選角色、點格抽籤，每抽必中，最後一抽加碼送 LAST ONE 賞。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="css/site/index.css">
+  <!-- 防止進場動畫開始前閃現：GSAP 設好初始狀態後由 motion.js 移除；2.5 秒後保險移除 -->
+  <script>
+    if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      document.documentElement.classList.add("motion-pending");
+      setTimeout(function () { document.documentElement.classList.remove("motion-pending"); }, 2500);
+    }
+  </script>
+</head>
+<body>
+  <!-- 頁首背景（Figma: topbg），隨主欄寬度等比縮放 -->
+  <div class="ib-backdrop" aria-hidden="true"></div>
+
+  <header class="l-header ib-wallet">
+    <p class="ib-wallet__coins" aria-live="polite">您的數位幣：<b class="ib-wallet__amount" id="bal">99,999</b></p>
+    <!-- 訪客：名稱與登出（js/site/guest.js） -->
+    <div class="ib-wallet__guest" id="guestBox" hidden>
+      <span class="ib-wallet__name" id="guestName"></span>
+      <button class="ib-wallet__out" id="btnGuestOut" type="button">登出</button>
+    </div>
+  </header>
+
+  <main class="l-container">
+    <!-- 主視覺（Figma: 主視覺 / topBn） -->
+    <section class="ib-hero">
+      <img class="ib-hero__bg" data-slot="visualBg" src="assets/img/hero/visual-bg.png" alt="" width="960" height="991">
+      <h1 class="ib-hero__heading">
+        <img class="ib-hero__logo" data-slot="logo" src="assets/img/hero/logo.png" alt="ETmall × PILI 霹靂Q俠" width="717" height="132">
+        <img class="ib-hero__subtitle" data-slot="subtitle" src="assets/img/hero/ani3-subtitle.png" alt="第一彈" width="272" height="75">
+        <img class="ib-hero__title-a" data-slot="titleA" src="assets/img/hero/ani1-title.png" alt="旅遊" width="296" height="167">
+        <img class="ib-hero__title-b" data-slot="titleB" src="assets/img/hero/ani2-title.png" alt="一番賞" width="453" height="215">
+      </h1>
+      <img class="ib-hero__ribbon" data-slot="ribbon" src="assets/img/hero/ani4-ribbon.png" alt="最後一抽加碼送 LAST ONE 賞！！" width="714" height="135">
+      <!-- 視覺風格的點綴圖（可選，由「活動頁設計管理」設定；未設定時隱藏） -->
+      <img class="ib-hero__deco ib-hero__deco--left" data-slot="decoLeft" alt="" hidden>
+      <img class="ib-hero__deco ib-hero__deco--right" data-slot="decoRight" alt="" hidden>
+    </section>
+
+    <!-- 雙按鈕（Figma: 雙按鈕） -->
+    <div class="ib-quicklinks">
+      <button class="ib-quicklinks__btn" id="btnRec"><img data-slot="btnRecords" src="assets/img/hero/btn-records.png" alt="抽獎紀錄" width="480" height="147"></button>
+      <button class="ib-quicklinks__btn" id="btnBoard"><img data-slot="btnBoard" src="assets/img/hero/btn-board.png" alt="中獎看板" width="480" height="147"></button>
+    </div>
+
+    <!-- 遊戲區標題（Figma: 遊戲區標題） -->
+    <h2 class="ib-game-title">
+      <img data-slot="gameTitle" src="assets/img/hero/game-title.png" alt="遊戲區：100% 中獎率。選取 1 格即可使用數位幣 100 枚進行抽獎，每人抽獎次數無上限" width="960" height="424">
+    </h2>
+
+    <!-- 角色選擇（Figma: 選擇器） -->
+    <div class="ib-picker" id="picker" role="group" aria-label="選擇角色"></div>
+
+    <!-- 遊戲區（Figma: 遊戲區 7 × 10） -->
+    <div class="ib-board" id="board">
+      <img class="ib-board__art" id="art" src="assets/img/board/01.png" alt="" width="960" height="960">
+      <div class="ib-board__grid" id="grid" role="grid" aria-label="抽獎格"></div>
+    </div>
+
+    <!-- 本輪狀態：輪數印章＋剩餘籤數進度＋規則說明 -->
+    <div class="ib-status-wrap">
+      <div class="ib-status" aria-live="polite">
+        <div class="ib-status__round">
+          <span class="ib-status__round-unit">第</span>
+          <em class="ib-status__round-num" id="round">2</em>
+          <span class="ib-status__round-unit">輪</span>
+        </div>
+        <div class="ib-status__stock">
+          <p class="ib-status__stock-text">
+            還剩 <em class="ib-status__left" id="left">0</em><span class="ib-status__total"> / <span id="total">70</span></span> 張可抽
+          </p>
+          <div class="progress ib-status__bar" role="progressbar" aria-label="本輪剩餘籤數" aria-valuemin="0" id="leftBar">
+            <span class="progress__fill ib-status__bar-fill" id="leftFill"></span>
+          </div>
+        </div>
+        <p class="ib-status__note">
+          <span class="ib-status__note-line">每格對應一張籤</span>
+          <span class="ib-status__note-line">抽完即開新一輪</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="ib-drawbar" id="actionbar" hidden>
+      <p class="ib-drawbar__text" id="selText">已選第 1 格</p>
+      <button class="btn btn--outline" id="btnReset">重新選擇</button>
+      <button class="btn btn--primary" id="btnDraw">確認抽獎（100 數位幣）</button>
+    </div>
+
+    <!-- 獎項介紹（Figma: index0327_07 掛軸，內容高度可延伸） -->
+    <section class="ib-scroll" aria-labelledby="ph">
+      <h2 class="u-visually-hidden" id="ph">獎項介紹</h2>
+      <div class="ib-scroll__content" id="prizes"></div>
+    </section>
+
+    <div class="l-inset">
+      <section class="l-section ib-rules" aria-labelledby="rh">
+        <h2 class="ib-rules__title" id="rh">活動說明</h2>
+        <div class="ib-rules__body">
+          <h4 class="ib-rules__heading">【活動辦法】</h4>
+          <ol class="ib-rules__list">
+            <li>活動時間：即日起至 2026/12/31 23:59 止。</li>
+            <li>活動資格：已完成會員註冊並綁定手機號碼之會員，即可參加。</li>
+            <li>活動內容：每次抽獎使用數位幣 100 枚，選擇任一格即抽出一張籤，每張籤必中 A～F 賞其中之一；每輪抽出最後一張籤者，加碼獲得 LAST ONE 賞。</li>
+            <li>購物金將於活動結束後 14 天內陸續匯入會員帳戶，使用期限為匯入後 30 天。</li>
+            <li>注意事項：
+              <ul class="ib-rules__sublist">
+                <li>此活動僅限官方網站參加。</li>
+                <li>實體獎項將於中獎後 30 個工作天內寄出，請確認收件資料正確。</li>
+                <li>F 賞數位幣將於中獎當下立即回饋至帳戶。</li>
+                <li>每輪籤數固定，抽完即開新一輪，獎項數量以中獎看板為準。</li>
+                <li>主辦單位保有活動變更、修改或終止之權利，如有異動，修改後之內容將公布於活動頁。</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </section>
+      <p class="ib-footnote">獎品圖示為示意，正式上線前請替換為實際商品圖。</p>
+    </div>
+  </main>
+
+  <div id="modal" class="modal" hidden></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  
+
+  <!-- GSAP 3（含 ScrollTrigger）：只載入一次 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- 載入順序：設定 → 圖像 → 狀態 → 動畫 → 畫面 → 撕籤效果 → 遊戲流程 → 訪客登入 → 進入點 -->
+  <!-- 視覺風格：先套用已發布的風格（或管理頁的即時預覽），再初始化其他模組 -->
+  <script src="js/core/api-config.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/domain/theme.js"></script>
+  <script>App.theme.boot();</script>
+  <script src="js/domain/config.js"></script>
+  <script src="js/domain/catalog.js"></script>
+  <script>App.catalog.boot();</script>
+  <script src="js/domain/rules.js"></script>
+  <script>App.rules.boot();</script>
+  <script src="js/site/art.js"></script>
+  <script src="js/site/store.js"></script>
+  <script src="js/site/motion.js"></script>
+  <script src="js/site/ui.js"></script>
+  <script src="js/site/tear.js"></script>
+  <script src="js/site/game.js"></script>
+  <script src="js/site/guest.js"></script>
+  <script src="js/site/main.js"></script>
+</body>
+</html>

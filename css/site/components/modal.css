@@ -1,0 +1,78 @@
+/* ==========================================================
+   components/modal.css — 彈窗
+   結構：
+   <div class="modal">                 遮罩，置中內容
+     <div class="modal__panel">        白色面板（可省略，例如撕籤畫面）
+       <header class="modal__header">
+         <h3 class="modal__title"></h3>
+         <button class="modal__close"></button>
+       </header>
+       <div class="modal__body"></div>
+   ========================================================== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    var(--gutter-right)
+    max(16px, env(safe-area-inset-bottom, 0px))
+    var(--gutter-left);
+  background: var(--color-overlay);
+}
+
+/* 彈窗顏色跟著「面板」設定（--theme-panel-* / --theme-head-*，見 js/theme.js），與操作列、活動說明一致；
+   內部元件透過 --modal-* 取用，次要文字由內容文字與底色混合而成 */
+.modal__panel {
+  --modal-bg: var(--theme-panel-bg, var(--color-surface));
+  --modal-text: var(--theme-panel-text, var(--color-text));
+  --modal-title: var(--theme-head-bg, var(--color-text));
+  --modal-muted: color-mix(in srgb, var(--modal-text) 65%, var(--modal-bg));
+  --modal-line: color-mix(in srgb, var(--modal-text) 18%, var(--modal-bg));
+  --table-head-bg: var(--modal-title);
+  --table-head-text: var(--theme-head-text, var(--modal-bg));
+  --table-line: var(--modal-line);
+  --progress-track: var(--modal-line);
+  --progress-fill: var(--modal-text);
+  width: 100%;
+  max-width: 400px;
+  max-height: 84vh;
+  overflow: auto;
+  color: var(--modal-text);
+  background: var(--modal-bg);
+  border: 2px solid var(--modal-title);
+  border-radius: var(--radius-xl);
+}
+
+.modal__header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--modal-bg);
+  border-bottom: 1px solid var(--modal-line);
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  color: var(--modal-title);
+}
+
+.modal__close {
+  padding: var(--space-2xs) var(--space-sm);
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  color: var(--modal-muted, var(--color-text-muted));
+}
+
+.modal__body {
+  padding: var(--space-lg) var(--space-xl);
+}
+
+/* 開啟／關閉動畫由 js/motion.js 負責 */

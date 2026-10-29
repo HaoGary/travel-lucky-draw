@@ -1,0 +1,24 @@
+/* ==========================================================
+   components/table.css — 資料表格
+   用法：<table class="table">。只影響加了 .table 的表格。
+   ========================================================== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th {
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  color: var(--table-head-text, var(--color-bg));
+  background: var(--table-head-bg, var(--color-text));
+}
+
+.table td {
+  padding: var(--space-sm);
+  vertical-align: top;
+  border-bottom: 1px solid var(--table-line, var(--color-border));
+  font-variant-numeric: tabular-nums;
+}

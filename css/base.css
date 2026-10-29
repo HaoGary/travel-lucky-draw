@@ -1,0 +1,77 @@
+/* ==========================================================
+   base.css — Reset 與全域基礎
+   只處理 HTML 元素的預設值，不放任何元件外觀。
+   ========================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  padding-top: env(safe-area-inset-top, 0px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(ellipse 60% 30% at 10% 100%, rgba(47, 127, 134, .12), transparent 70%),
+    radial-gradient(ellipse 50% 25% at 95% 92%, rgba(47, 127, 134, .10), transparent 70%),
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(200, 144, 44, .12), transparent 70%);
+  background-attachment: fixed;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+/* 按鈕 Reset：外觀一律由 .btn 或各元件自行定義 */
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* hidden 屬性必須永遠生效（JS 以 el.hidden 切換顯示），
+   這是全站唯一保留的 !important（另一處為下方的減少動態設定） */
+[hidden] {
+  display: none !important;
+}
+
+/* 只給螢幕報讀器讀的文字（標題已畫在圖片裡時使用） */
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
