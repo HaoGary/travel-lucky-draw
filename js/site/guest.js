@@ -130,12 +130,36 @@ App.guest = (function () {
     showLogin(reason);
   }
 
+  /* ---------- 心跳：登入後每隔幾秒確認金鑰是否仍有效 ----------
+     單一裝置登入：別人用同帳號登入後，這台的舊金鑰會失效，心跳偵測到就立刻登出。
+     只在前景分頁、已登入、非預覽、有連後端時才打；背景分頁暫停以節省後端額度。 */
+  const HEARTBEAT_MS = 8000;
+  let hbTimer = 0, hbBusy = false;
+  async function heartbeat() {
+    if (hbBusy || PREVIEW || !api.enabled || document.hidden) return;
+    const g = api.guest();
+    if (!g || !g.key) return;
+    hbBusy = true;
+    try {
+      const r = await api.get("ping", { member: g.key });
+      if (r && r.valid === false) signOut("此帳號已在其他裝置登入，您已被登出。請重新登入。");
+    } catch (e) { /* 網路暫時失敗就略過，下次再試 */ }
+    finally { hbBusy = false; }
+  }
+  function startHeartbeat() {
+    if (hbTimer) return;
+    hbTimer = setInterval(heartbeat, HEARTBEAT_MS);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) heartbeat(); });
+    window.addEventListener("focus", heartbeat);
+  }
+
   /** 進入頁面：沒有登入就顯示登入彈窗 */
   function init() {
     if (PREVIEW) return;
     const out = $("btnGuestOut");
     if (out) out.addEventListener("click", confirmLogout);
     renderChip();
+    startHeartbeat();          // 啟動心跳（未登入時自動略過，登入後開始生效）
     if (!ok()) showLogin();
   }
 
