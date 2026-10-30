@@ -32,7 +32,7 @@ App.game = (function () {
     const ticket = showTear(store.currentChar(), sel);
     Promise.resolve(App.ready).catch(() => {}).then(() => store.draw(sel)).then(res => {
       done();
-      if (res.error && res.guest === false) { App.guest.signOut("登入資料已失效，請重新登入。"); return; }
+      if (res.error && res.guest === false) { App.guest.signOut("此帳號已在其他裝置登入，您已被登出。請重新登入。"); return; }
       if (res.error) { ui.closeModal(); fail(res); return; }
       ui.setSel(null);
       ui.renderCoins(true);
