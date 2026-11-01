@@ -26,6 +26,15 @@ App.guest = (function () {
     if (g) {
       $("guestName").textContent = g.name;
       $("guestName").title = g.name + "（" + g.phone + "）";
+      const uidEl = $("guestUid");
+      if (uidEl) {
+        const uid = g.uid || "";
+        uidEl.hidden = !uid;
+        uidEl.dataset.uid = uid;
+        const code = uidEl.querySelector(".ib-uid__code");
+        if (code) code.textContent = uid ? uid.slice(0, 6) : "";
+        uidEl.title = uid ? "點擊複製完整 UID：" + uid : "";
+      }
     }
   }
 
@@ -158,6 +167,17 @@ App.guest = (function () {
     if (PREVIEW) return;
     const out = $("btnGuestOut");
     if (out) out.addEventListener("click", confirmLogout);
+    const uidBtn = $("guestUid");
+    if (uidBtn) uidBtn.addEventListener("click", async () => {
+      const uid = uidBtn.dataset.uid || "";
+      if (!uid) return;
+      try { await navigator.clipboard.writeText(uid); } catch (e) {}
+      const code = uidBtn.querySelector(".ib-uid__code");
+      uidBtn.classList.add("is-copied");
+      if (code) code.textContent = "已複製";
+      clearTimeout(uidBtn._t);
+      uidBtn._t = setTimeout(() => { uidBtn.classList.remove("is-copied"); if (code) code.textContent = uid.slice(0, 6); }, 1200);
+    });
     renderChip();
     startHeartbeat();          // 啟動心跳（未登入時自動略過，登入後開始生效）
     if (!ok()) showLogin();

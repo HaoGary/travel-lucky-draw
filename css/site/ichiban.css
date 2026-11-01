@@ -1380,7 +1380,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  max-width: 30%;
+  max-width: 48%;
   font-family: var(--font-body);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -1396,6 +1396,30 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+/* 訪客 UID 小膠囊（姓名前）：顯示前 6 碼，可點擊複製完整 UID */
+.ib-wallet__uid {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: var(--font-weight-regular, 400);
+  line-height: 1.6;
+  color: inherit;
+  background: rgba(255, 255, 255, .18);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.ib-wallet__uid[hidden] { display: none; }
+.ib-wallet__uid:hover,
+.ib-wallet__uid:focus-visible { background: rgba(255, 255, 255, .32); outline: none; }
+.ib-wallet__uid.is-copied { background: rgba(255, 255, 255, .4); }
+.ib-uid__code { font-variant-numeric: tabular-nums; letter-spacing: .3px; }
+.ib-uid__icon { width: 13px; height: 13px; flex: none; fill: currentColor; opacity: .85; }
 
 .ib-wallet__out {
   position: relative;
@@ -1434,7 +1458,7 @@
   .ib-wallet__guest {
     position: static;
     transform: none;
-    max-width: 45%;
+    max-width: 55%;
   }
 }
 

@@ -87,7 +87,7 @@
         const catalogChanged = useData(data);
         // 瀏覽器記得的訪客代碼已不存在（例如資料被清除）：請重新登入
         if (owner.member && !data.guest && App.api.memberKey() === owner.member) App.guest.signOut("登入資料已失效，請重新登入。");
-        else if (data.guest) App.guest.renderChip();
+        else if (data.guest) { if (data.guest.uid) App.api.syncGuest({ uid: data.guest.uid }); App.guest.renderChip(); }
         root.dataset.api = "connected";                         // 除錯用：<html data-api="connected">
         console.info("[ichiban] 已連線 Apps Script：" + App.api.url);
         if (cached && changed) {

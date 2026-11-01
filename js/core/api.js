@@ -77,6 +77,8 @@ App.api = (function () {
   const memberKey = () => (guest() || {}).key || "";
   function saveGuest(g) { try { localStorage.setItem(GUEST_KEY, JSON.stringify(g)); } catch (e) {} }
   function guestLogout() { try { localStorage.removeItem(GUEST_KEY); } catch (e) {} }
+  /** 合併更新已登入訪客的欄位（例如重整後由 bootstrap 補上 uid） */
+  function syncGuest(patch) { const g = guest(); if (g) saveGuest(Object.assign(g, patch || {})); }
   /** 手機號碼：09 開頭 10 碼（可含 - 或空白，也接受 +886） */
   function normPhone(p) {
     let s = String(p || "").replace(/[\s\-().]/g, "");
@@ -93,7 +95,7 @@ App.api = (function () {
       return { guest: g, isNew: true };
     }
     const r = await post("guest.login", { name, phone });
-    const g = { key: r.key, name: r.guest.name, phone: r.guest.phone };
+    const g = { key: r.key, name: r.guest.name, phone: r.guest.phone, uid: r.guest.uid || "" };
     saveGuest(g);
     return Object.assign({}, r, { guest: g });
   }
@@ -182,5 +184,5 @@ App.api = (function () {
   /** 權限管理頁等其他後台動作 */
   const call = (action, body) => adminPost(action, body);
 
-  return { enabled, url: URL_, memberKey, guest, guestLogin, guestLogout, normPhone, get, post, session, clearSession, can, toLogin, register, login, logout, me, adminGet, adminPost, call };
+  return { enabled, url: URL_, memberKey, guest, syncGuest, guestLogin, guestLogout, normPhone, get, post, session, clearSession, can, toLogin, register, login, logout, me, adminGet, adminPost, call };
 })();

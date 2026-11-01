@@ -25,6 +25,10 @@
     <p class="ib-wallet__coins" aria-live="polite">您的數位幣：<b class="ib-wallet__amount" id="bal">99,999</b></p>
     <!-- 訪客：名稱與登出（js/site/guest.js） -->
     <div class="ib-wallet__guest" id="guestBox" hidden>
+      <button class="ib-wallet__uid" id="guestUid" type="button" hidden aria-label="複製 UID">
+        <span class="ib-uid__code"></span>
+        <svg class="ib-uid__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      </button>
       <span class="ib-wallet__name" id="guestName"></span>
       <button class="ib-wallet__out" id="btnGuestOut" type="button">登出</button>
     </div>
