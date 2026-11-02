@@ -100,8 +100,9 @@ App.ui = (function () {
   }
 
   /* ---------- 獎項介紹（卡片，剩餘數量跟著目前角色的籤池） ---------- */
+  const isLast = k => (App.isLastGrade ? App.isLastGrade(k) : k === "L");
   function stockText(k, b) {
-    if (k === "L") {
+    if (isLast(k)) {
       const left = store.leftCount(b);
       return left === 1 ? "只剩最後 1 張，抽中即得" : "抽出本輪最後一張即可獲得";
     }
@@ -117,16 +118,16 @@ App.ui = (function () {
       PRIZE_ORDER.forEach((k, i) => {
         const card = wrap.children[i];
         card.querySelector(".ib-prize-card__stock").textContent = stockText(k, b);
-        card.classList.toggle("ib-prize-card--soldout", k !== "L" && r[k] === 0);
+        card.classList.toggle("ib-prize-card--soldout", !isLast(k) && r[k] === 0);
       });
       return;
     }
     wrap.innerHTML = PRIZE_ORDER.map(k => {
-      const mods = (k === "L" ? " ib-prize-card--last" : "") + (k !== "L" && r[k] === 0 ? " ib-prize-card--soldout" : "");
+      const mods = (isLast(k) ? " ib-prize-card--last" : "") + (!isLast(k) && r[k] === 0 ? " ib-prize-card--soldout" : "");
       return `
       <article class="ib-prize-card${mods}" style="--card-tint:${PRIZES[k].tint}">
         <div class="ib-prize-card__media">
-          <span class="ib-prize-card__badge">${k === "L" ? "LAST ONE" : k + " 賞"}</span>
+          <span class="ib-prize-card__badge">${isLast(k) ? "LAST ONE" : k + " 賞"}</span>
           ${art.prize(k, "ib-prize-card__icon")}
         </div>
         <div class="ib-prize-card__body">
@@ -235,11 +236,12 @@ App.ui = (function () {
         <div class="progress ib-stock__bar"><span class="progress__fill" style="width:${(r[k] / pool[k]) * 100}%"></span></div>
         <div class="ib-stock__count">剩餘 ${r[k]} / ${pool[k]}</div>
       </div></div>`).join("");
-    const lastRow = `
-      <div class="ib-stock">${art.prize("L", "ib-stock__icon")}<div>
-        <div class="ib-stock__name">LAST ONE 賞｜${PRIZES.L.name}</div>
+    const lastGrades = PRIZE_ORDER.filter(k => isLast(k) && PRIZES[k]);
+    const lastRow = lastGrades.map(k => `
+      <div class="ib-stock">${art.prize(k, "ib-stock__icon")}<div>
+        <div class="ib-stock__name">${art.gradeLabel(k)}｜${PRIZES[k].name}</div>
         <div class="ib-stock__count ib-stock__count--message">${left === 1 ? "只剩最後 1 張，抽中即得！" : `剩 ${left} 張籤，抽出最後一張者獲得`}</div>
-      </div></div>`;
+      </div></div>`).join("");
     openModal(sheet(`中獎看板・${c.name} 第${b.round}輪`, rows + lastRow));
   }
 

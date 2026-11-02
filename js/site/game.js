@@ -81,6 +81,7 @@ App.game = (function () {
   /* 中獎結果 */
   function showWin(grade, last) {
     const rw = config.REWARD[grade] || {};
+    const lastGrade = (App.PRIZE_ORDER || []).find(k => (App.isLastGrade ? App.isLastGrade(k) : k === "L") && PRIZES[k]);
     const note = rw.coins
       ? `<div class="ib-win__note">${rw.coins} 枚${config.CURRENCY}已回饋至帳戶</div>`
       : rw.voucher
@@ -92,9 +93,9 @@ App.game = (function () {
         <span class="ib-win__badge">恭喜您獲得</span>
         <div class="ib-win__grade" id="wh">${art.gradeLabel(grade)}</div>
         ${art.prize(grade, "ib-win__icon")}
-        <h4 class="ib-win__name">${PRIZES[grade].name}</h4>
+        <h4 class="ib-win__name">${(PRIZES[grade] || {}).name || ""}</h4>
         ${note}
-        ${last ? `<div class="ib-win__extra">你抽出本輪最後一張籤！<br>加碼獲得 LAST ONE 賞：${PRIZES.L.name}</div>` : ""}
+        ${last && lastGrade ? `<div class="ib-win__extra">你抽出本輪最後一張籤！<br>加碼獲得 ${art.gradeLabel(lastGrade)}：${PRIZES[lastGrade].name}</div>` : ""}
         <button class="btn btn--primary btn--block ib-win__confirm" id="okBtn">確定</button>
       </div>`, { lock: true });
 

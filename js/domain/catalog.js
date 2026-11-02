@@ -17,7 +17,7 @@ App.catalog = (function () {
 
   /* 獎項欄位（type = 後台輸入元件；max = 字數上限） */
   const PRIZE_FIELDS = [
-    { key: "type", name: "分類文字",  input: "text",     max: 10,  hint: "顯示在卡片名稱上方，例如：實體獎品、購物金" },
+    { key: "type", name: "分類文字",  input: "text",     max: 10,  hint: "" },
     { key: "name", name: "商品名稱",  input: "text",     max: 24,  required: true },
     { key: "spec", name: "商品規格",  input: "textarea", max: 120, hint: "尺寸、材質、數量等；顯示在獎品詳情" }
   ];
@@ -28,31 +28,50 @@ App.catalog = (function () {
   ];
   const PRIZE_KEYS = ["type", "name", "spec", "img", "fit", "tint"];
 
-  /* 預設值：取自 config.js（必須在 config.js 之後載入） */
-  const DEFAULT = (() => {
-    const prizes = {};
-    App.PRIZE_ORDER.forEach(k => {
-      const p = App.PRIZES[k];
-      prizes[k] = Object.fromEntries(PRIZE_KEYS.map(f => [f, p[f] || ""]));
-    });
-    const chars = App.CHARS.map(c => ({ id: c.id, name: c.name, figure: c.figure, board: c.board }));
-    return JSON.stringify({ prizes, chars });
-  })();
-  const defaults = () => JSON.parse(DEFAULT);
+  /* 賞別代碼：1～4 碼英數（與後端一致） */
+  const CODE_RE = /^[A-Z0-9]{1,4}$/;
+  const pickPrize = (p, fb) => Object.fromEntries(PRIZE_KEYS.map(f => [f, (p && p[f]) ?? (fb ? fb[f] : "")]));
 
-  /* 補上缺少的欄位（舊資料或新增欄位時） */
+  /* 單一賞別正規化（補欄位、限制安全格式） */
+  function normGrade(g) {
+    const code = String((g && g.code) || "").toUpperCase();
+    return {
+      code,
+      label: String((g && g.label) || (code + " 賞")),
+      color: App.safeColor((g && g.color) || "", "#888888"),
+      occupiesCell: !g || g.occupiesCell !== false,
+      rewardCurrency: (g && (g.rewardCurrency === "VOUCHER" || g.rewardCurrency === "DIGITAL")) ? g.rewardCurrency : ""
+    };
+  }
+
+  /* 預設值：取自 config.js 目前的 App.GRADES（必須在 config.js 之後載入） */
+  const defaultGrades = () => App.GRADES.map(g => ({ ...g }));
+  function defaults() {
+    const grades = defaultGrades();
+    const prizes = {};
+    grades.forEach(g => { prizes[g.code] = pickPrize(App.PRIZES[g.code], App.defaultPrize(g)); });
+    const chars = App.CHARS.map(c => ({ id: c.id, name: c.name, figure: c.figure, board: c.board }));
+    return JSON.parse(JSON.stringify({ grades, prizes, chars }));
+  }
+
+  /* 補上缺少的欄位（舊資料或新增欄位時）；賞別清單以 cat.grades 為準，動態增刪 */
   function normalize(cat) {
     const d = defaults();
     if (!cat) return d;
+    const rawGrades = Array.isArray(cat.grades) && cat.grades.length ? cat.grades : d.grades;
+    const seen = {};
+    const grades = rawGrades.map(normGrade).filter(g => { if (!CODE_RE.test(g.code) || seen[g.code]) return false; seen[g.code] = 1; return true; });
+    if (!grades.length) grades.push(...d.grades.map(g => ({ ...g })));
     const prizes = {};
-    // 只保留 PRIZE_KEYS 定義的欄位
-    App.PRIZE_ORDER.forEach(k => {
-      const saved = (cat.prizes || {})[k] || {};
-      prizes[k] = Object.fromEntries(PRIZE_KEYS.map(f => [f, saved[f] ?? d.prizes[k][f]]));
+    grades.forEach(g => {
+      const saved = (cat.prizes || {})[g.code];
+      const fb = d.prizes[g.code] || pickPrize(App.PRIZES[g.code], App.defaultPrize(g));
+      const p = Object.fromEntries(PRIZE_KEYS.map(f => [f, (saved && saved[f]) ?? fb[f]]));
       // 安全性：圖片、底色、顯示方式限制成安全格式（避免被當成 HTML／指令碼）
-      prizes[k].img = App.safeImg(prizes[k].img);
-      prizes[k].tint = App.safeColor(prizes[k].tint, d.prizes[k].tint);
-      prizes[k].fit = App.safeFit(prizes[k].fit);
+      p.img = App.safeImg(p.img);
+      p.tint = App.safeColor(p.tint, fb.tint || g.color);
+      p.fit = App.safeFit(p.fit);
+      prizes[g.code] = p;
     });
     const chars = d.chars.map(c => {
       const m = { ...c, ...((cat.chars || []).find(x => x.id === c.id) || {}) };
@@ -60,7 +79,7 @@ App.catalog = (function () {
       m.board = App.safeImg(m.board);
       return m;
     });
-    return { prizes, chars };
+    return { grades, prizes, chars };
   }
 
   /* 活動頁以 innerHTML 輸出這些文字，套用前先轉義；換行轉成 <br> */
@@ -70,8 +89,11 @@ App.catalog = (function () {
   /* ---------- 套用到活動頁：就地更新 App.PRIZES / App.CHARS（ui.js 持有同一個物件） ---------- */
   function apply(cat) {
     const c = normalize(cat);
+    // 先依賞別清單重建 PRIZE_ORDER / PRIZES / POOL / REWARD 的鍵（動態增刪賞別）
+    App.applyGrades(c.grades);
     App.PRIZE_ORDER.forEach(k => {
       const src = c.prizes[k], dst = App.PRIZES[k];
+      if (!src || !dst) return;
       dst.type = esc(src.type);
       dst.name = esc(src.name);
       dst.spec = multi(src.spec);

@@ -23,16 +23,16 @@ App.art = (function () {
     coin: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="#f0b93a" stroke="#8f6216" stroke-width="4"/><circle cx="50" cy="50" r="26" fill="none" stroke="#ffd96b" stroke-width="4"/><text x="50" y="62" text-anchor="middle" font-size="32" font-weight="900" fill="#8f6216" font-family="serif">東</text></svg>`
   };
 
-  const icon = (k, cls = "") => ICONS[App.PRIZES[k].icon].replace("<svg ", `<svg class="${cls}" `);
+  const icon = (k, cls = "") => (ICONS[(App.PRIZES[k] && App.PRIZES[k].icon)] || ICONS.pillow).replace("<svg ", `<svg class="${cls}" `);
 
   /* 獎品圖：有商品圖用 <img>（依 fit 加上 --cover／--contain），沒有則用備用 SVG 圖示 */
   function prize(k, cls = "") {
     const p = App.PRIZES[k];
-    if (!p.img) return icon(k, cls);
+    if (!p || !p.img) return icon(k, cls);
     const fit = cls ? ` ${cls}--${p.fit || "cover"}` : "";
     return `<img class="${cls}${fit}" src="${p.img}" alt="${p.name}" loading="lazy" decoding="async">`;
   }
-  const gradeLabel = k => (k === "L" ? "LAST ONE 賞" : k + " 賞");
+  const gradeLabel = k => (App.gradeLabel ? App.gradeLabel(k) : (k === "L" ? "LAST ONE 賞" : k + " 賞"));
 
   return { figure, icon, prize, gradeLabel };
 })();

@@ -4,12 +4,15 @@
    可在後台修改：
      cost     每抽消耗的數位幣
      pool     每輪各賞數量（總和須等於格數 COLS × ROWS）
-     reward   即時回饋（E 賞購物金、F 賞數位幣）
+     reward   即時回饋（依賞別的回饋幣別，VOUCHER 購物金／DIGITAL 數位幣）
      text     活動說明文字（可用 {COST} {CURRENCY} {E} {F} 代入目前數值）
      layout   獎品分佈：default 為全角色共用，overrides[角色 id] 為個別設定
    生效時間：
      費用、回饋、說明文字 → 發布後立即生效
      數量、分佈           → 只套用到「之後開始的新一輪」，進行中的輪次不變（維持公平）
+
+   ※ 賞別（獎項等級）為動態：以 App.GRADES 為單一來源；佔格賞別 = App.occupyGrades()。
+     COLS / ROWS / N / GRADES 皆為即時讀取，後台新增／刪除賞別後立即反映。
 
    分佈模式
      random       每輪隨機打散（原本的做法）
@@ -24,8 +27,13 @@ window.App = window.App || {};
 App.rules = (function () {
   const KEY_PUBLISHED = "ichiban-rules-published";
   const cfg = App.config;
-  const COLS = cfg.COLS, ROWS = cfg.ROWS, N = COLS * ROWS;
-  const GRADES = Object.keys(cfg.POOL);              // A–F（LAST ONE 不佔格子）
+
+  /* 即時讀取（賞別／格數會動態變動） */
+  const cols = () => cfg.COLS;
+  const rows = () => cfg.ROWS;
+  const n = () => cfg.COLS * cfg.ROWS;
+  const grades = () => App.occupyGrades();        // 佔格賞別（LAST ONE 等不佔格者不在內）
+
   const MODES = {
     random: { name: "每輪隨機", desc: "每一輪重新隨機打散，所有格子機會相同。" },
     fixed: { name: "固定配置", desc: "在格子上指定每格的賞別，每輪使用同一張配置。" },
@@ -37,13 +45,13 @@ App.rules = (function () {
     items: [
       "活動時間：即日起至 2026/12/31 23:59 止。",
       "活動資格：已完成會員註冊並綁定手機號碼之會員，即可參加。",
-      "活動內容：每次抽獎使用{CURRENCY} {COST} 枚，選擇任一格即抽出一張籤，每張籤必中 A～F 賞其中之一；每輪抽出最後一張籤者，加碼獲得 LAST ONE 賞。",
+      "活動內容：每次抽獎使用{CURRENCY} {COST} 枚，選擇任一格即抽出一張籤，每張籤必中其中一賞；每輪抽出最後一張籤者，加碼獲得 LAST ONE 賞。",
       "購物金將於活動結束後 14 天內陸續匯入會員帳戶，使用期限為匯入後 30 天。"
     ],
     notes: [
       "此活動僅限官方網站參加。",
       "實體獎項將於中獎後 30 個工作天內寄出，請確認收件資料正確。",
-      "F 賞{CURRENCY}將於中獎當下立即回饋至帳戶。",
+      "數位幣回饋將於中獎當下立即回饋至帳戶。",
       "每輪籤數固定，抽完即開新一輪，獎項數量以中獎看板為準。",
       "主辦單位保有活動變更、修改或終止之權利，如有異動，修改後之內容將公布於活動頁。"
     ]
@@ -59,19 +67,29 @@ App.rules = (function () {
     mode: "random",
     fixed: [],                       // 長度 N，每格一個賞別；未配置為 ""
     vary: true,                      // 固定配置：每輪隨機鏡像
-    high: ["A", "B"],                // 隨機＋限制：受限制的賞別
+    high: grades().slice(0, 2),      // 隨機＋限制：受限制的賞別（預設前兩個賞）
     avoidEdge: true,                 // 高賞不放最外圈
     gap: 1,                          // 高賞彼此至少間隔幾格（0 = 不限）
     zone: []                         // 高賞禁放格（格子編號）
   });
-  const DEFAULT = JSON.stringify({
-    cost: cfg.COST,
-    pool: { ...cfg.POOL },
-    reward: { E: cfg.REWARD.E.voucher, F: cfg.REWARD.F.coins },
-    text: DEFAULT_TEXT,
-    layout: { default: defaultLayout(), overrides: {} }
-  });
-  const defaults = () => JSON.parse(DEFAULT);
+
+  /* 預設值：即時由 config 的賞別／數量／回饋組出 */
+  function defaults() {
+    const pool = {};
+    grades().forEach(g => (pool[g] = cfg.POOL[g] != null ? cfg.POOL[g] : 1));
+    const reward = {};
+    App.rewardGrades().forEach(code => {
+      const r = cfg.REWARD[code] || {};
+      reward[code] = r.voucher != null ? r.voucher : (r.coins != null ? r.coins : 0);
+    });
+    return {
+      cost: cfg.COST,
+      pool,
+      reward,
+      text: JSON.parse(JSON.stringify(DEFAULT_TEXT)),
+      layout: { default: defaultLayout(), overrides: {} }
+    };
+  }
 
   function normalize(r) {
     const d = defaults();
@@ -79,20 +97,25 @@ App.rules = (function () {
     const fixLayout = l => ({ ...defaultLayout(), ...(l || {}) });
     const overrides = {};
     Object.entries((r.layout && r.layout.overrides) || {}).forEach(([id, l]) => (overrides[id] = fixLayout(l)));
+    // pool / reward 只保留目前存在的賞別（刪除的賞別自動丟棄；新增的賞別給預設）
+    const pool = {};
+    grades().forEach(g => (pool[g] = (r.pool && r.pool[g] != null) ? r.pool[g] : d.pool[g]));
+    const reward = {};
+    App.rewardGrades().forEach(g => (reward[g] = (r.reward && r.reward[g] != null) ? r.reward[g] : d.reward[g]));
     return {
       cost: r.cost ?? d.cost,
-      pool: { ...d.pool, ...(r.pool || {}) },
-      reward: { ...d.reward, ...(r.reward || {}) },
+      pool,
+      reward,
       text: { items: (r.text && r.text.items) || d.text.items, notes: (r.text && r.text.notes) || d.text.notes },
       layout: { default: fixLayout(r.layout && r.layout.default), overrides }
     };
   }
 
   /* ---------- 格子幾何 ---------- */
-  const rc = i => [Math.floor(i / COLS), i % COLS];
-  const isEdge = i => { const [r, c] = rc(i); return r === 0 || c === 0 || r === ROWS - 1 || c === COLS - 1; };
+  const rc = i => [Math.floor(i / cols()), i % cols()];
+  const isEdge = i => { const [r, c] = rc(i); return r === 0 || c === 0 || r === rows() - 1 || c === cols() - 1; };
   const dist = (a, b) => { const [r1, c1] = rc(a), [r2, c2] = rc(b); return Math.max(Math.abs(r1 - r2), Math.abs(c1 - c2)); };
-  const mirror = (i, h, v) => { let [r, c] = rc(i); if (h) c = COLS - 1 - c; if (v) r = ROWS - 1 - r; return r * COLS + c; };
+  const mirror = (i, h, v) => { let [r, c] = rc(i); if (h) c = cols() - 1 - c; if (v) r = rows() - 1 - r; return r * cols() + c; };
 
   function shuffle(arr, rnd) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -101,7 +124,7 @@ App.rules = (function () {
     }
     return arr;
   }
-  const bag = pool => { const a = []; GRADES.forEach(k => { for (let i = 0; i < pool[k]; i++) a.push(k); }); return a; };
+  const bag = pool => { const a = []; grades().forEach(k => { for (let i = 0; i < (pool[k] || 0); i++) a.push(k); }); return a; };
 
   /* ---------- 產生一輪的籤序 ----------
      回傳長度 N 的賞別陣列；條件無法滿足時回傳 null（呼叫端退回純隨機） */
@@ -110,7 +133,7 @@ App.rules = (function () {
       if (validateFixed(layout.fixed, pool).length) return null;
       if (!layout.vary) return layout.fixed.slice();
       const h = rnd() < .5, v = rnd() < .5;
-      const out = new Array(N);
+      const out = new Array(n());
       layout.fixed.forEach((g, i) => (out[mirror(i, h, v)] = g));
       return out;
     }
@@ -119,15 +142,16 @@ App.rules = (function () {
   }
 
   function constrained(l, pool, rnd) {
+    const N = n();
     // 數量少（較稀有）的先放，比較不會卡住
-    const high = GRADES.filter(g => l.high.includes(g)).sort((a, b) => pool[a] - pool[b]);
+    const high = grades().filter(g => l.high.includes(g)).sort((a, b) => pool[a] - pool[b]);
     const zone = new Set(l.zone);
     for (let attempt = 0; attempt < 200; attempt++) {
       const cells = new Array(N).fill("");
       const placed = [];
       let ok = true;
       for (const g of high) {
-        for (let n = 0; n < pool[g] && ok; n++) {
+        for (let k = 0; k < pool[g] && ok; k++) {
           const cand = [];
           for (let i = 0; i < N; i++) {
             if (cells[i] || zone.has(i) || (l.avoidEdge && isEdge(i))) continue;
@@ -152,11 +176,13 @@ App.rules = (function () {
   /* ---------- 檢查 ---------- */
   function validateFixed(fixed, pool) {
     const errs = [];
-    const count = Object.fromEntries(GRADES.map(g => [g, 0]));
+    const gs = grades();
+    const count = Object.fromEntries(gs.map(g => [g, 0]));
     let empty = 0;
+    const N = n();
     for (let i = 0; i < N; i++) { const g = fixed[i]; if (count[g] != null) count[g]++; else empty++; }
     if (empty) errs.push(`尚有 ${empty} 格未配置`);
-    GRADES.forEach(g => { if (count[g] !== pool[g]) errs.push(`${g} 賞已放 ${count[g]} 個，應為 ${pool[g]} 個`); });
+    gs.forEach(g => { if (count[g] !== pool[g]) errs.push(`${App.gradeLabel(g)}已放 ${count[g]} 個，應為 ${pool[g]} 個`); });
     return errs;
   }
 
@@ -168,11 +194,12 @@ App.rules = (function () {
   /* 回傳錯誤訊息陣列；空陣列代表可以發布 */
   function validate(r, charNames = {}) {
     const errs = [];
+    const N = n(), gs = grades();
     if (!(r.cost >= 1)) errs.push("每抽費用至少 1");
-    const total = GRADES.reduce((s, g) => s + (r.pool[g] || 0), 0);
+    const total = gs.reduce((s, g) => s + (r.pool[g] || 0), 0);
     if (total !== N) errs.push(`各賞數量總和為 ${total}，須等於格數 ${N}`);
-    GRADES.forEach(g => { if (!(r.pool[g] >= 1)) errs.push(`${g} 賞數量至少 1`); });
-    if (!(r.reward.E >= 0) || !(r.reward.F >= 0)) errs.push("回饋數量不可小於 0");
+    gs.forEach(g => { if (!(r.pool[g] >= 1)) errs.push(`${App.gradeLabel(g)}數量至少 1`); });
+    App.rewardGrades().forEach(g => { if (!(r.reward[g] >= 0)) errs.push(`${App.gradeLabel(g)}回饋數量不可小於 0`); });
     if (!r.text.items.some(s => s.trim())) errs.push("活動辦法至少要有一條");
     if (total !== N) return errs;          // 數量不對時分佈一定不成立，先不檢查
     const check = (l, who) => layoutErrors(l, r.pool).forEach(e => errs.push(`${who}：${e}`));
@@ -191,12 +218,13 @@ App.rules = (function () {
   }
 
   /* 模擬 n 輪，回傳每格出現指定賞別的次數（熱度圖用） */
-  function simulate(layout, pool, grades, n = 400) {
+  function simulate(layout, pool, gradeList, times = 400) {
+    const N = n();
     const heat = new Array(N).fill(0);
-    for (let s = 1; s <= n; s++) {
+    for (let s = 1; s <= times; s++) {
       const cells = generate(layout, pool, rng(s * 104729 + 11));
       if (!cells) continue;
-      cells.forEach((g, i) => { if (grades.includes(g)) heat[i]++; });
+      cells.forEach((g, i) => { if (gradeList.includes(g)) heat[i]++; });
     }
     return heat;
   }
@@ -205,15 +233,20 @@ App.rules = (function () {
   let current = defaults();
   const fill = s => String(s)
     .replace(/\{COST\}/g, current.cost).replace(/\{CURRENCY\}/g, cfg.CURRENCY)
-    .replace(/\{E\}/g, current.reward.E).replace(/\{F\}/g, current.reward.F);
+    .replace(/\{E\}/g, firstReward("VOUCHER")).replace(/\{F\}/g, firstReward("DIGITAL"));
+  const firstReward = kind => { const g = App.GRADES.find(x => x.rewardCurrency === kind); return g && current.reward[g.code] != null ? current.reward[g.code] : ""; };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   function apply(r) {
     current = normalize(r);
     cfg.COST = current.cost;
-    GRADES.forEach(g => (cfg.POOL[g] = current.pool[g]));
-    cfg.REWARD.E = { voucher: current.reward.E };
-    cfg.REWARD.F = { coins: current.reward.F };
+    // 若後端帶來棋盤尺寸（board），一併套用（向前相容；未帶則維持現值）
+    if (r && r.board) { cfg.COLS = Number(r.board.cols) || cfg.COLS; cfg.ROWS = Number(r.board.rows) || cfg.ROWS; }
+    grades().forEach(g => (cfg.POOL[g] = current.pool[g]));
+    App.rewardGrades().forEach(code => {
+      const cur = App.gradeMeta(code).rewardCurrency;
+      cfg.REWARD[code] = cur === "VOUCHER" ? { voucher: current.reward[code] } : { coins: current.reward[code] };
+    });
     renderPage();
   }
 
@@ -294,7 +327,8 @@ App.rules = (function () {
   }
 
   return {
-    KEY_PUBLISHED, COLS, ROWS, N, GRADES, MODES, TOKENS,
+    KEY_PUBLISHED, MODES, TOKENS,
+    get COLS() { return cols(); }, get ROWS() { return rows(); }, get N() { return n(); }, get GRADES() { return grades(); },
     defaults, defaultLayout, normalize, validate, layoutErrors, validateFixed,
     generate, simulate, rng, isEdge, apply, makeCells, layoutFor,
     get current() { return current; }, loadPublished, savePublished, boot
